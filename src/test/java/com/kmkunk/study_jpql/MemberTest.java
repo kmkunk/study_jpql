@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-@Rollback(value = false)
+//@Rollback(value = false)
 class MemberTest {
     @Autowired EntityManager em;
 
@@ -53,6 +53,54 @@ class MemberTest {
 
         for (Member member : result) {
             System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void memberJoinTest() {
+        Team team = new Team();
+        team.setName("team1");
+        em.persist(team);
+
+        Member member = Member.builder()
+                .username("member1")
+                .age(11)
+                .build();
+        member.changeTeam(team);
+        em.persist(member);
+
+        em.flush();
+
+        List<Member> result = em.createQuery("select m from Member m left join m.team t", Member.class)
+                .getResultList();
+
+        for (Member m : result) {
+            System.out.println("m = " + m);
+        }
+    }
+
+    @Test
+    public void memberTypeTest() {
+        Team team = new Team();
+        team.setName("team1");
+        em.persist(team);
+
+        Member member = Member.builder()
+                .username("member1")
+                .age(11)
+                .type(MemberType.ADMIN)
+                .build();
+        member.changeTeam(team);
+        em.persist(member);
+
+        em.flush();
+
+        List<Member> result = em.createQuery("select m from Member m where m.type = :userType", Member.class)
+                .setParameter("userType", MemberType.ADMIN)
+                .getResultList();
+
+        for (Member m : result) {
+            System.out.println("m = " + m);
         }
     }
 }
